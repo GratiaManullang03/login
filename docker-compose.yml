@@ -1,0 +1,98 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: secureauth_postgres
+    environment:
+      POSTGRES_USER: secureauth
+      POSTGRES_PASSWORD: secureauth_password
+      POSTGRES_DB: secureauth_db
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U secureauth -d secureauth_db']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - secureauth_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: secureauth_redis
+    command: redis-server --appendonly yes --requirepass secureauth_redis_password
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', '--raw', 'incr', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - secureauth_network
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: secureauth_api
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://secureauth:secureauth_password@postgres:5432/secureauth_db
+      REDIS_URL: redis://:secureauth_redis_password@redis:6379/0
+    ports:
+      - '8000:8000'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./app:/app/app
+      - ./alembic:/app/alembic
+      - ./scripts:/app/scripts
+    command: >
+      sh -c "
+        alembic upgrade head &&
+        uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+      "
+    networks:
+      - secureauth_network
+
+  nginx:
+    image: nginx:alpine
+    container_name: secureauth_nginx
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - api
+    networks:
+      - secureauth_network
+
+  mailhog:
+    image: mailhog/mailhog
+    container_name: secureauth_mailhog
+    ports:
+      - '1025:1025' # SMTP port
+      - '8025:8025' # Web UI
+    networks:
+      - secureauth_network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  secureauth_network:
+    driver: bridge
