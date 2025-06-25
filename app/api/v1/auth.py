@@ -36,6 +36,7 @@ from app.services.auth import AuthService
 from app.services.audit import AuditService
 from app.services.device import DeviceService
 from app.services.two_factor import TwoFactorService
+from app.middleware.csrf import get_csrf_token
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
 
@@ -431,3 +432,22 @@ async def logout_all_sessions(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred while terminating sessions"
         )
+    
+
+@router.get("/csrf-token")
+async def get_csrf_token_endpoint(request: Request) -> Dict[str, str]:
+    """
+    Get CSRF token for form submissions.
+    
+    The token is also set as a cookie automatically by the middleware.
+    Include this token in your requests as:
+    - Header: X-CSRF-Token
+    - Form field: csrf_token
+    - JSON field: csrf_token
+    """
+    csrf_token = get_csrf_token(request)
+    if not csrf_token:
+        # Token will be generated on next GET request
+        return {"csrf_token": "", "message": "Token will be generated on page load"}
+    
+    return {"csrf_token": csrf_token}

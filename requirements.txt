@@ -1,9 +1,9 @@
 # Core Framework
-fastapi==0.104.1
-uvicorn[standard]==0.24.0
-pydantic==2.5.0
-pydantic-settings==2.1.0
-python-multipart==0.0.6
+fastapi==0.115.13
+uvicorn[standard]==0.34.3
+pydantic==2.11.7
+pydantic-settings==2.10.1
+python-multipart==0.0.20
 
 # Database
 sqlalchemy==2.0.23
@@ -17,12 +17,10 @@ python-jose[cryptography]==3.3.0
 cryptography==41.0.7
 pyotp==2.9.0
 qrcode[pil]==7.4.2
-fastapi-csrf-protect==0.2.1
-itsdangerous 
+itsdangerous==2.2.0
 
 # Redis
 redis==4.6.0
-aioredis==2.0.1
 fastapi-limiter==0.1.5
 
 # Email

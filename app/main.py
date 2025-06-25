@@ -13,7 +13,6 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
 from starlette.middleware.sessions import SessionMiddleware
-from starlette.middleware.csrf import CSRFMiddleware
 
 from app.core.config import settings
 from app.core.exceptions import SecureAuthException
@@ -23,6 +22,7 @@ from app.middleware.security import SecurityHeadersMiddleware
 from app.middleware.logging import LoggingMiddleware
 from app.middleware.error_handler import ErrorHandlerMiddleware
 from app.middleware.rate_limit import RateLimitMiddleware
+from app.middleware.csrf import CSRFProtectionMiddleware  # Import custom CSRF middleware
 
 # Configure logging
 logging.basicConfig(
@@ -141,7 +141,7 @@ def create_application() -> FastAPI:
             allowed_hosts=["*.secureauth.com", "secureauth.com"]  # Adjust as needed
         )
     
-    # 8. Session middleware (for CSRF protection if needed)
+    # 8. Session middleware (required for CSRF)
     app.add_middleware(
         SessionMiddleware,
         secret_key=settings.SECRET_KEY,
@@ -150,63 +150,51 @@ def create_application() -> FastAPI:
         same_site="lax",
         https_only=not settings.DEBUG
     )
-
-    # 9. CSRF Middleware
+    
+    # 9. CSRF Protection (custom implementation)
     app.add_middleware(
-        CSRFMiddleware,
-        secret=settings.SECRET_KEY,
-        cookie_name="secureauth_csrf",
-        cookie_secure=not settings.DEBUG,
-        cookie_samesite="lax",
-        header_name="X-CSRF-Token"
-    )
-
-    
-    # Include routers
-    app.include_router(
-        health.router,
-        prefix=settings.API_V1_STR,
-        tags=["health"]
+        CSRFProtectionMiddleware,
+        secret_key=settings.CSRF_SECRET if hasattr(settings, 'CSRF_SECRET') else settings.SECRET_KEY,
+        exclude_paths={
+            "/docs", 
+            "/redoc", 
+            "/openapi.json", 
+            "/api/v1/health",
+            "/api/v1/auth/login",  # Exclude login endpoint if using OAuth2 form
+            "/api/v1/auth/token",  # Token endpoints typically don't need CSRF
+            "/api/v1/auth/refresh"
+        }
     )
     
-    app.include_router(
-        auth.router,
-        prefix=settings.API_V1_STR,
-        tags=["authentication"]
-    )
-    
-    app.include_router(
-        users.router,
-        prefix=settings.API_V1_STR,
-        tags=["users"]
-    )
+    # Include API routers
+    app.include_router(health.router, prefix=settings.API_V1_STR)
+    app.include_router(auth.router, prefix=settings.API_V1_STR)
+    app.include_router(users.router, prefix=settings.API_V1_STR)
     
     # Root endpoint
     @app.get("/", include_in_schema=False)
-    async def root() -> Dict[str, Any]:
+    async def root():
         """Root endpoint."""
         return {
-            "app": settings.APP_NAME,
+            "name": settings.APP_NAME,
             "version": settings.APP_VERSION,
-            "status": "running",
+            "status": "operational",
             "docs": "/docs" if settings.DEBUG else None
         }
     
-    # Custom exception handler
+    # Custom exception handler for SecureAuthException
     @app.exception_handler(SecureAuthException)
     async def secure_auth_exception_handler(
         request: Request,
         exc: SecureAuthException
     ) -> JSONResponse:
-        """Handle custom SecureAuth exceptions."""
+        """Handle SecureAuthException."""
         return JSONResponse(
             status_code=exc.status_code,
             content={
-                "error": {
-                    "message": exc.message,
-                    "type": type(exc).__name__,
-                    "details": exc.details
-                }
+                "detail": exc.detail,
+                "error_code": exc.error_code,
+                "request_id": getattr(request.state, "request_id", None)
             }
         )
     
@@ -216,17 +204,13 @@ def create_application() -> FastAPI:
 # Create application instance
 app = create_application()
 
-
 if __name__ == "__main__":
     import uvicorn
     
-    # Run with uvicorn when executed directly
     uvicorn.run(
         "app.main:app",
         host="0.0.0.0",
         port=8000,
         reload=settings.DEBUG,
-        log_level=settings.LOG_LEVEL.lower(),
-        access_log=True,
-        workers=1 if settings.DEBUG else 4
+        log_level=settings.LOG_LEVEL.lower()
     )
