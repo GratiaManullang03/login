@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import Optional, Dict, Any, List
 from uuid import UUID
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 
 from app.core.constants import TokenType
 
@@ -158,7 +158,7 @@ class APIKeyCreate(BaseModel):
         description="API key scopes/permissions"
     )
     
-    @validator('name')
+    @field_validator('name')
     def validate_name(cls, v: str) -> str:
         """Validate API key name."""
         return v.strip()

@@ -63,8 +63,8 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         """
         return {
             "default-src": "'self'",
-            "script-src": "'self' 'unsafe-inline' 'unsafe-eval'",  # Adjust based on needs
-            "style-src": "'self' 'unsafe-inline'",
+            "script-src": "'self' https://cdn.jsdelivr.net 'unsafe-inline' 'unsafe-eval'",
+            "style-src": "'self' https://cdn.jsdelivr.net 'unsafe-inline'",
             "img-src": "'self' data: https:",
             "font-src": "'self'",
             "connect-src": "'self'",
@@ -90,12 +90,10 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         
         for directive, value in self.csp_directives.items():
             if value:
-                # Add nonce to script-src if provided
-                if directive == "script-src" and nonce:
-                    value = value.replace("'unsafe-inline'", f"'nonce-{nonce}'")
+                # Langsung tambahkan value tanpa modifikasi nonce
                 directives.append(f"{directive} {value}")
             else:
-                # For directives without values (like upgrade-insecure-requests)
+                # Untuk directives tanpa nilai (seperti upgrade-insecure-requests)
                 directives.append(directive)
         
         return "; ".join(directives)

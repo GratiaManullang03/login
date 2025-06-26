@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import Optional, Dict, Any, List, Annotated 
 from uuid import UUID
 
-from pydantic import BaseModel, Field, EmailStr, validator, constr
+from pydantic import BaseModel, Field, EmailStr, field_validator, constr
 
 from app.core.constants import DeviceType, Platform, TwoFactorMethod
 
@@ -80,7 +80,7 @@ class LoginRequest(BaseModel):
         description="Extended session duration"
     )
     
-    @validator('email')
+    @field_validator('email')
     def normalize_email(cls, v: str) -> str:
         """Normalize email to lowercase."""
         return v.lower().strip()
@@ -221,7 +221,7 @@ class TwoFactorVerifyRequest(BaseModel):
         description="Whether to trust this device for future logins"
     )
     
-    @validator('code')
+    @field_validator('code')
     def normalize_code(cls, v: str) -> str:
         """Normalize code format."""
         # Remove spaces and uppercase for consistency
@@ -300,7 +300,7 @@ class TwoFactorEnableRequest(BaseModel):
         description="Phone number for SMS method (E.164 format)"
     )
     
-    @validator('phone_number')
+    @field_validator('phone_number')
     def validate_phone_for_sms(cls, v: Optional[str], values: dict) -> Optional[str]:
         """Validate phone number is provided for SMS method."""
         if values.get('method') == TwoFactorMethod.SMS and not v:
