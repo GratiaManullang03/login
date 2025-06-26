@@ -8,18 +8,21 @@ services:
       POSTGRES_USER: secureauth
       POSTGRES_PASSWORD: secureauth_password
       POSTGRES_DB: secureauth_db
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
     ports:
       - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./scripts/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U secureauth -d secureauth_db']
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 40s
     networks:
       - secureauth_network
+    restart: unless-stopped
 
   redis:
     image: redis:7-alpine
@@ -30,12 +33,13 @@ services:
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ['CMD', 'redis-cli', '--raw', 'incr', 'ping']
+      test: ['CMD', 'redis-cli', '-a', 'secureauth_redis_password', 'ping']
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
       - secureauth_network
+    restart: unless-stopped
 
   api:
     build:
@@ -45,8 +49,11 @@ services:
     env_file:
       - .env
     environment:
+      # Override untuk development
       DATABASE_URL: postgresql://secureauth:secureauth_password@postgres:5432/secureauth_db
       REDIS_URL: redis://:secureauth_redis_password@redis:6379/0
+      SMTP_HOST: mailhog
+      SMTP_PORT: 1025
     ports:
       - '8000:8000'
     depends_on:
@@ -55,16 +62,19 @@ services:
       redis:
         condition: service_healthy
     volumes:
-      - ./app:/app/app
-      - ./alembic:/app/alembic
-      - ./scripts:/app/scripts
+      - ./app:/app/app:delegated
+      - ./alembic:/app/alembic:delegated
+      - ./logs:/app/logs:delegated
     command: >
       sh -c "
-        alembic upgrade head &&
-        uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+        echo 'Waiting for database...' &&
+        sleep 10 &&
+        python -m alembic upgrade head &&
+        uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --log-level debug
       "
     networks:
       - secureauth_network
+    restart: unless-stopped
 
   nginx:
     image: nginx:alpine
@@ -79,20 +89,25 @@ services:
       - api
     networks:
       - secureauth_network
+    restart: unless-stopped
 
   mailhog:
     image: mailhog/mailhog
     container_name: secureauth_mailhog
     ports:
-      - '1025:1025' # SMTP port
-      - '8025:8025' # Web UI
+      - '1025:1025'  # SMTP server
+      - '8025:8025'  # Web UI
     networks:
       - secureauth_network
+    restart: unless-stopped
 
 volumes:
   postgres_data:
+    driver: local
   redis_data:
+    driver: local
 
 networks:
   secureauth_network:
     driver: bridge
+    name: auth-api-network

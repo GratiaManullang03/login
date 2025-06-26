@@ -1,47 +1,45 @@
 # Multi-stage build for smaller final image
-FROM python:3.11-slim as builder
+FROM python:3.11-slim-bookworm AS builder
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    POETRY_VERSION=1.6.1 \
-    POETRY_HOME="/opt/poetry" \
-    POETRY_VIRTUALENVS_CREATE=false
+    PYTHONUNBUFFERED=1
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     build-essential \
     libpq-dev \
     curl \
+    gcc \
+    python3-dev \
     && rm -rf /var/lib/apt/lists/*
-
-# Install Poetry
-RUN curl -sSL https://install.python-poetry.org | python3 -
-ENV PATH="$POETRY_HOME/bin:$PATH"
 
 # Set work directory
 WORKDIR /app
 
-# Copy dependency files
-COPY pyproject.toml poetry.lock* requirements.txt* ./
+# Upgrade pip and install build tools first (untuk fix vulnerability)
+RUN pip install --no-cache-dir --upgrade \
+    pip \
+    setuptools>=78.1.1 \
+    wheel>=0.46
 
-# Install dependencies
-RUN if [ -f "pyproject.toml" ]; then \
-        poetry install --no-root --no-dev; \
-    else \
-        pip install --no-cache-dir -r requirements.txt; \
-    fi
+# Copy and install dependencies
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Final stage
-FROM python:3.11-slim
+FROM python:3.11-slim-bookworm
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    APP_HOME=/app
+    APP_HOME=/app \
+    PYTHONPATH=/app
 
-# Install runtime dependencies
-RUN apt-get update && apt-get install -y \
+# Install runtime dependencies and security updates
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install -y \
     libpq5 \
     curl \
     && rm -rf /var/lib/apt/lists/*
@@ -57,10 +55,10 @@ COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/pytho
 COPY --from=builder /usr/local/bin /usr/local/bin
 
 # Copy application code
-COPY . .
+COPY --chown=appuser:appuser . .
 
-# Change ownership to non-root user
-RUN chown -R appuser:appuser $APP_HOME
+# Create necessary directories
+RUN mkdir -p /app/logs && chown -R appuser:appuser /app/logs
 
 # Switch to non-root user
 USER appuser
