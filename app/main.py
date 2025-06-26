@@ -160,8 +160,9 @@ def create_application() -> FastAPI:
             "/redoc", 
             "/openapi.json", 
             "/api/v1/health",
-            "/api/v1/auth/login",  # Exclude login endpoint if using OAuth2 form
-            "/api/v1/auth/token",  # Token endpoints typically don't need CSRF
+            "/api/v1/users/signup",
+            "/api/v1/auth/login",
+            "/api/v1/auth/token",
             "/api/v1/auth/refresh"
         }
     )

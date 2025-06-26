@@ -65,7 +65,7 @@ class TokenResponse(BaseModel):
     ut_expires_at: datetime = Field(..., description="Expiration timestamp")
     ut_is_used: bool = Field(..., description="Whether token has been used")
     ut_used_at: Optional[datetime] = Field(None, description="When token was used")
-    ut_created_at: datetime = Field(..., description="Creation timestamp")
+    created_at: datetime = Field(..., description="Creation timestamp")
     ut_metadata: Optional[Dict[str, Any]] = Field(None, description="Token metadata")
     is_expired: bool = Field(..., description="Whether token is expired")
     is_valid: bool = Field(..., description="Whether token is valid")
@@ -84,7 +84,7 @@ class TokenResponse(BaseModel):
                 "ut_expires_at": "2024-01-16T00:00:00Z",
                 "ut_is_used": False,
                 "ut_used_at": None,
-                "ut_created_at": "2024-01-15T00:00:00Z",
+                "created_at": "2024-01-15T00:00:00Z",
                 "ut_metadata": {},
                 "is_expired": False,
                 "is_valid": True

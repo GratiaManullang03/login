@@ -38,7 +38,7 @@ class AuditLog(Base):
         al_new_values: Nilai baru (JSONB)
         al_ip_address: IP address saat action
         al_user_agent: User agent saat action
-        al_created_at: Timestamp audit log
+        created_at: Timestamp audit log
     """
     
     __tablename__ = "audit_logs"
@@ -96,7 +96,7 @@ class AuditLog(Base):
         String,  # TEXT type
         nullable=True
     )
-    al_created_at = Column(
+    created_at = Column(
         DateTime(timezone=True),
         server_default=text("CURRENT_TIMESTAMP"),
         nullable=False,
@@ -122,7 +122,7 @@ class AuditLog(Base):
         Index('idx_audit_logs_user_id', 'al_user_id'),
         Index('idx_audit_logs_action', 'al_action'),
         Index('idx_audit_logs_entity', 'al_entity_type', 'al_entity_id'),
-        Index('idx_audit_logs_created_at', 'al_created_at'),
+        Index('idx_audit_logs_created_at', 'created_at'),
     )
     
     # Properties
@@ -226,7 +226,7 @@ class AuditLog(Base):
             "al_new_values": self.al_new_values,
             "al_ip_address": self.al_ip_address,
             "al_user_agent": self.al_user_agent,
-            "al_created_at": self.al_created_at.isoformat() if self.al_created_at else None,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
             "al_metadata": self.al_metadata,
             "changes": self.get_changes()
         }
@@ -243,5 +243,5 @@ class AuditLog(Base):
         """String representation."""
         return (
             f"<AuditLog(id={self.al_id}, action={self.al_action}, "
-            f"user_id={self.al_user_id}, created_at={self.al_created_at})>"
+            f"user_id={self.al_user_id}, created_at={self.created_at})>"
         )

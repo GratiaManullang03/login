@@ -36,7 +36,7 @@ class UserSession(BaseModel):
         us_user_agent: User agent saat session dibuat
         us_device_info: Additional device information (JSONB)
         us_is_active: Whether session is still active
-        us_created_at: Session creation timestamp
+        created_at: Session creation timestamp
         us_last_activity: Last activity timestamp
         us_logout_reason: Reason for logout (if logged out)
     """
@@ -95,7 +95,7 @@ class UserSession(BaseModel):
         nullable=False,
         index=True
     )
-    us_created_at = Column(
+    created_at = Column(
         DateTime(timezone=True),
         server_default=text("CURRENT_TIMESTAMP"),
         nullable=False,
@@ -208,7 +208,7 @@ class UserSession(BaseModel):
             "us_user_agent": self.us_user_agent,
             "us_device_info": self.us_device_info,
             "us_is_active": self.us_is_active,
-            "us_created_at": self.us_created_at.isoformat() if self.us_created_at else None,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
             "us_last_activity": self.us_last_activity.isoformat() if self.us_last_activity else None,
             "us_logout_reason": self.us_logout_reason,
             "is_expired": self.is_expired,

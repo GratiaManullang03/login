@@ -40,7 +40,7 @@ class UserToken(BaseModel):
         ut_is_used: Whether token has been used
         ut_used_at: Timestamp when token was used
         ut_metadata: Additional token metadata (JSONB)
-        ut_created_at: Token creation timestamp
+        created_at: Token creation timestamp
     """
     
     __tablename__ = "user_tokens"
@@ -98,7 +98,7 @@ class UserToken(BaseModel):
         nullable=True,
         default=dict
     )
-    ut_created_at = Column(
+    created_at = Column(
         DateTime(timezone=True),
         server_default=text("CURRENT_TIMESTAMP"),
         nullable=False,
@@ -209,7 +209,7 @@ class UserToken(BaseModel):
             "ut_is_used": self.ut_is_used,
             "ut_used_at": self.ut_used_at.isoformat() if self.ut_used_at else None,
             "ut_metadata": self.ut_metadata,
-            "ut_created_at": self.ut_created_at.isoformat() if self.ut_created_at else None,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
             "is_expired": self.is_expired,
             "is_valid": self.is_valid
         }

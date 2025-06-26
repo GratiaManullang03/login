@@ -132,10 +132,10 @@ class AuditService:
             filters.append(AuditLog.al_action == action)
         
         if start_date:
-            filters.append(AuditLog.al_created_at >= start_date)
+            filters.append(AuditLog.created_at >= start_date)
         
         if end_date:
-            filters.append(AuditLog.al_created_at <= end_date)
+            filters.append(AuditLog.created_at <= end_date)
         
         if ip_address:
             filters.append(AuditLog.al_ip_address == ip_address)
@@ -150,9 +150,9 @@ class AuditService:
         
         # Apply ordering
         if order_desc:
-            query = query.order_by(AuditLog.al_created_at.desc())
+            query = query.order_by(AuditLog.created_at.desc())
         else:
-            query = query.order_by(AuditLog.al_created_at.asc())
+            query = query.order_by(AuditLog.created_at.asc())
         
         # Apply pagination
         offset = (page - 1) * per_page
@@ -195,7 +195,7 @@ class AuditService:
             .where(
                 and_(
                     AuditLog.al_user_id == user_id,
-                    AuditLog.al_created_at >= start_date
+                    AuditLog.created_at >= start_date
                 )
             )
             .group_by(AuditLog.al_action)
@@ -207,12 +207,12 @@ class AuditService:
         daily_result = await self.db.execute(
             text("""
                 SELECT 
-                    DATE(al_created_at) as date,
+                    DATE(created_at) as date,
                     COUNT(*) as count
                 FROM audit_logs
                 WHERE al_user_id = :user_id
-                    AND al_created_at >= :start_date
-                GROUP BY DATE(al_created_at)
+                    AND created_at >= :start_date
+                GROUP BY DATE(created_at)
                 ORDER BY date DESC
             """),
             {"user_id": str(user_id), "start_date": start_date}
@@ -273,14 +273,14 @@ class AuditService:
         query = select(AuditLog).where(
             and_(
                 AuditLog.al_action.in_(security_actions),
-                AuditLog.al_created_at >= start_time
+                AuditLog.created_at >= start_time
             )
         )
         
         if user_id:
             query = query.where(AuditLog.al_user_id == user_id)
         
-        query = query.order_by(AuditLog.al_created_at.desc())
+        query = query.order_by(AuditLog.created_at.desc())
         query = query.options(selectinload(AuditLog.user))
         
         result = await self.db.execute(query)
@@ -306,7 +306,7 @@ class AuditService:
         query = select(func.count(AuditLog.al_id)).where(
             and_(
                 AuditLog.al_action == AuditAction.LOGIN_FAILED,
-                AuditLog.al_created_at >= start_time
+                AuditLog.created_at >= start_time
             )
         )
         
@@ -332,7 +332,7 @@ class AuditService:
         result = await self.db.execute(
             text("""
                 DELETE FROM audit_logs
-                WHERE al_created_at < :cutoff_date
+                WHERE created_at < :cutoff_date
             """),
             {"cutoff_date": cutoff_date}
         )
@@ -396,7 +396,7 @@ class AuditService:
             writer = csv.DictWriter(
                 output,
                 fieldnames=[
-                    "al_id", "al_created_at", "al_user_id", "username",
+                    "al_id", "created_at", "al_user_id", "username",
                     "al_action", "al_entity_type", "al_entity_id",
                     "al_ip_address", "al_user_agent"
                 ]
@@ -406,7 +406,7 @@ class AuditService:
             for log in logs:
                 writer.writerow({
                     "al_id": str(log.al_id),
-                    "al_created_at": log.al_created_at.isoformat(),
+                    "created_at": log.created_at.isoformat(),
                     "al_user_id": str(log.al_user_id) if log.al_user_id else "",
                     "username": log.username or "",
                     "al_action": log.al_action,

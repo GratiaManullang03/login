@@ -159,7 +159,7 @@ async def create_indexes():
         
         # Audit log indexes
         "CREATE INDEX IF NOT EXISTS idx_audit_logs_action ON audit_logs(al_action)",
-        "CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(al_created_at)",
+        "CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at)",
         
         # Token indexes
         "CREATE INDEX IF NOT EXISTS idx_user_tokens_type_expires ON user_tokens(ut_token_type, ut_expires_at)",

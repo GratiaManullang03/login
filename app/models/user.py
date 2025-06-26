@@ -41,8 +41,8 @@ class User(BaseModel):
         u_is_verified: Whether email is verified
         u_is_locked: Whether account is locked
         u_email_verified_at: Timestamp when email was verified
-        u_created_at: Account creation timestamp
-        u_updated_at: Last update timestamp
+        created_at: Account creation timestamp
+        updated_at: Last update timestamp
         u_last_login_at: Last successful login timestamp
         u_failed_login_attempts: Number of consecutive failed login attempts
         u_locked_until: Account locked until this timestamp
@@ -105,17 +105,17 @@ class User(BaseModel):
         DateTime(timezone=True),
         nullable=True
     )
-    u_created_at = Column(
-        DateTime(timezone=True),
-        server_default=text("CURRENT_TIMESTAMP"),
-        nullable=False,
-        index=True
-    )
-    u_updated_at = Column(
-        DateTime(timezone=True),
-        onupdate=lambda: datetime.now(timezone.utc),
-        nullable=True
-    )
+    # created_at = Column(
+    #     DateTime(timezone=True),
+    #     server_default=text("CURRENT_TIMESTAMP"),
+    #     nullable=False,
+    #     index=True
+    # )
+    # updated_at = Column(
+    #     DateTime(timezone=True),
+    #     onupdate=lambda: datetime.now(timezone.utc),
+    #     nullable=True
+    # )
     u_last_login_at = Column(
         DateTime(timezone=True),
         nullable=True,
@@ -191,7 +191,7 @@ class User(BaseModel):
         back_populates="user",
         cascade="all, delete-orphan",
         lazy="selectin",
-        order_by="desc(PasswordHistory.ph_created_at)"
+        order_by="desc(PasswordHistory.created_at)"
     )
     
     login_attempts: Mapped[List["LoginAttempt"]] = relationship(
@@ -353,8 +353,8 @@ class User(BaseModel):
             "u_is_verified": self.u_is_verified,
             "u_is_locked": self.is_locked_now,
             "u_email_verified_at": self.u_email_verified_at.isoformat() if self.u_email_verified_at else None,
-            "u_created_at": self.u_created_at.isoformat() if self.u_created_at else None,
-            "u_updated_at": self.u_updated_at.isoformat() if self.u_updated_at else None,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
             "u_last_login_at": self.u_last_login_at.isoformat() if self.u_last_login_at else None,
             "u_metadata": self.u_metadata,
             "has_2fa_enabled": self.has_2fa_enabled
