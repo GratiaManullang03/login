@@ -179,7 +179,7 @@ class EmailService:
             True jika berhasil
         """
         # Build verification URL
-        verification_url = f"{settings.FRONTEND_URL}/verify-email?token={verification_token}"
+        verification_url = f"{settings.FRONTEND_URL}verify-email?token={verification_token}"
         
         # Render template
         context = {
