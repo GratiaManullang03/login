@@ -113,7 +113,7 @@ class PaginationParams(BaseModel):
     )
     order_direction: Optional[str] = Field(
         "asc",
-        regex="^(asc|desc)$",
+        pattern="^(asc|desc)$",
         description="Order direction (asc/desc)"
     )
     

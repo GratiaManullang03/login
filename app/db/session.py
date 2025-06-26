@@ -55,10 +55,6 @@ def create_engine() -> AsyncEngine:
             },
             "command_timeout": 60,
             "prepared_statement_cache_size": 0,  # Disable to avoid issues
-            "keepalives": 1,
-            "keepalives_idle": 30,
-            "keepalives_interval": 10,
-            "keepalives_count": 5,
         }
     
     # Create engine

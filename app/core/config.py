@@ -114,7 +114,7 @@ class Settings(BaseSettings):
     USE_SECURE_COOKIES: bool = Field(default=True, description="Use secure cookies")
     ROTATE_REFRESH_TOKENS: bool = Field(default=True, description="Rotate refresh tokens on use")
     
-    @field_validator("BACKEND_CORS_ORIGINS", pre=True)
+    @field_validator("BACKEND_CORS_ORIGINS", mode='before')
     def assemble_cors_origins(cls, v: Union[str, List[str]]) -> Union[List[str], str]:
         """Parse CORS origins dari string atau list."""
         if isinstance(v, str) and not v.startswith("["):
@@ -123,14 +123,14 @@ class Settings(BaseSettings):
             return v
         raise ValueError(v)
     
-    @field_validator("DATABASE_URL", pre=True)
+    @field_validator("DATABASE_URL", mode='before')
     def validate_postgres_url(cls, v: str) -> str:
         """Validate PostgreSQL URL."""
         if not v:
             raise ValueError("DATABASE_URL must be set")
         return v
     
-    @field_validator("REDIS_URL", pre=True)
+    @field_validator("REDIS_URL", mode='before')
     def validate_redis_url(cls, v: str) -> str:
         """Validate Redis URL."""
         if not v:
@@ -162,13 +162,6 @@ class Settings(BaseSettings):
     def account_lockout_timedelta(self) -> timedelta:
         """Return timedelta untuk account lockout duration."""
         return timedelta(minutes=self.ACCOUNT_LOCKOUT_MINUTES)
-    
-    class Config:
-        """Pydantic config."""
-        case_sensitive = False
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-
 
 @lru_cache()
 def get_settings() -> Settings:

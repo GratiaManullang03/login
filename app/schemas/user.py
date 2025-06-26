@@ -8,7 +8,7 @@ from typing import Optional, Dict, Any, List, Annotated
 from uuid import UUID
 import re
 
-from pydantic import BaseModel, Field, EmailStr, validator, constr, root_validator
+from pydantic import BaseModel, Field, EmailStr, field_validator, constr, model_validator
 
 from app.core.config import settings
 
@@ -38,12 +38,12 @@ class UserBase(BaseModel):
         description="Username (alphanumeric, underscore, hyphen only)"
     )
     
-    @validator('email')
+    @field_validator('email')
     def normalize_email(cls, v: str) -> str:
         """Normalize email to lowercase."""
         return v.lower().strip()
     
-    @validator('username')
+    @field_validator('username')
     def validate_username(cls, v: str) -> str:
         """Validate username format and reserved words."""
         v = v.strip()
@@ -73,7 +73,7 @@ class UserCreate(UserBase):
         description="Additional user metadata"
     )
     
-    @validator('password')
+    @field_validator('password')
     def validate_password_strength(cls, v: str) -> str:
         """
         Validate password meets security requirements.
@@ -107,7 +107,7 @@ class UserCreate(UserBase):
         
         return v
     
-    @root_validator
+    @model_validator(mode='before')
     def validate_passwords_match(cls, values: dict) -> dict:
         """Validate password and confirm_password match."""
         password = values.get('password')
@@ -156,7 +156,7 @@ class UserUpdate(BaseModel):
         description="Updated metadata"
     )
     
-    @validator('username')
+    @field_validator('username')
     def validate_username(cls, v: Optional[str]) -> Optional[str]:
         """Validate username if provided."""
         if v is None:
@@ -263,7 +263,7 @@ class PasswordChange(BaseModel):
         description="Confirm new password"
     )
     
-    @validator('new_password')
+    @field_validator('new_password')
     def validate_password_strength(cls, v: str, values: dict) -> str:
         """Validate new password strength and not same as current."""
         # Check if same as current password
@@ -294,7 +294,7 @@ class PasswordChange(BaseModel):
         
         return v
     
-    @root_validator
+    @model_validator(mode='before')
     def validate_passwords_match(cls, values: dict) -> dict:
         """Validate new passwords match."""
         new_password = values.get('new_password')
@@ -341,7 +341,7 @@ class PasswordResetRequest(BaseModel):
         description="Email address for password reset"
     )
     
-    @validator('email')
+    @field_validator('email')
     def normalize_email(cls, v: str) -> str:
         """Normalize email to lowercase."""
         return v.lower().strip()
@@ -371,7 +371,7 @@ class PasswordResetConfirm(BaseModel):
         description="Confirm new password"
     )
     
-    @validator('new_password')
+    @field_validator('new_password')
     def validate_password_strength(cls, v: str) -> str:
         """Validate password strength."""
         if len(v) < settings.PASSWORD_MIN_LENGTH:
@@ -396,7 +396,7 @@ class PasswordResetConfirm(BaseModel):
         
         return v
     
-    @root_validator
+    @model_validator(mode='before')
     def validate_passwords_match(cls, values: dict) -> dict:
         """Validate passwords match."""
         new_password = values.get('new_password')
