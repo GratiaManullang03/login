@@ -391,7 +391,7 @@ class TokenService:
         if not include_used:
             query = query.where(UserToken.ut_is_used == False)
         
-        query = query.order_by(UserToken.ut_created_at.desc())
+        query = query.order_by(UserToken.created_at.desc())
         
         result = await self.db.execute(query)
         return result.scalars().all()
@@ -413,7 +413,7 @@ class TokenService:
                 or_(
                     and_(
                         UserToken.ut_expires_at < datetime.now(timezone.utc),
-                        UserToken.ut_created_at < cutoff_date
+                        UserToken.created_at < cutoff_date
                     ),
                     and_(
                         UserToken.ut_is_used == True,

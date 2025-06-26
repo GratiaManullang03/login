@@ -38,7 +38,7 @@ class UserDevice(BaseModel):
         ud_browser: Browser name
         ud_is_trusted: Whether device is trusted
         ud_last_used_at: Last time device was used
-        ud_created_at: When device was first seen
+        created_at: When device was first seen
         ud_is_active: Whether device is still active
     """
     
@@ -98,7 +98,7 @@ class UserDevice(BaseModel):
         nullable=True,
         index=True
     )
-    ud_created_at = Column(
+    created_at = Column(
         DateTime(timezone=True),
         server_default=text("CURRENT_TIMESTAMP"),
         nullable=False,
@@ -233,7 +233,7 @@ class UserDevice(BaseModel):
             "ud_browser": self.ud_browser,
             "ud_is_trusted": self.ud_is_trusted,
             "ud_last_used_at": self.ud_last_used_at.isoformat() if self.ud_last_used_at else None,
-            "ud_created_at": self.ud_created_at.isoformat() if self.ud_created_at else None,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
             "ud_is_active": self.ud_is_active,
             "display_name": self.display_name,
             "is_mobile": self.is_mobile,

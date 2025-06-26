@@ -326,7 +326,9 @@ class Security:
         Returns:
             Hashed token
         """
-        return hashes.Hash(hashes.SHA256()).finalize(token.encode()).hex()
+        digest = hashes.Hash(hashes.SHA256())
+        digest.update(token.encode())
+        return digest.finalize().hex()
 
 
 # Global security instance

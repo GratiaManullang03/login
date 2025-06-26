@@ -246,7 +246,7 @@ class UserService:
                 user.u_metadata = update_data["metadata"]
         
         # Update timestamp
-        user.u_updated_at = datetime.now(timezone.utc)
+        user.updated_at = datetime.now(timezone.utc)
         
         # Audit changes
         if old_values:
@@ -310,7 +310,7 @@ class UserService:
             result = await self.db.execute(
                 select(PasswordHistory)
                 .where(PasswordHistory.ph_user_id == user_id)
-                .order_by(PasswordHistory.ph_created_at.desc())
+                .order_by(PasswordHistory.created_at.desc())
                 .limit(settings.PASSWORD_HISTORY_COUNT)
             )
             password_history = result.scalars().all()
@@ -323,7 +323,7 @@ class UserService:
         
         # Set new password
         user.set_password(new_password)
-        user.u_updated_at = datetime.now(timezone.utc)
+        user.updated_at = datetime.now(timezone.utc)
         
         # Add to password history
         new_history = PasswordHistory.create_from_password(user_id, new_password)
@@ -377,7 +377,7 @@ class UserService:
         
         # Set new password
         user.set_password(new_password)
-        user.u_updated_at = datetime.now(timezone.utc)
+        user.updated_at = datetime.now(timezone.utc)
         
         # Reset failed login attempts
         user.u_failed_login_attempts = 0
@@ -553,7 +553,7 @@ class UserService:
         if soft_delete:
             # Soft delete - deactivate account
             user.u_is_active = False
-            user.u_updated_at = datetime.now(timezone.utc)
+            user.updated_at = datetime.now(timezone.utc)
             
             # Terminate all sessions
             from app.services.auth import AuthService
@@ -648,7 +648,7 @@ class UserService:
         total_count = total_result.scalar()
         
         # Apply ordering
-        order_field = getattr(User, f"u_{order_by}", User.u_created_at)
+        order_field = getattr(User, f"u_{order_by}", User.created_at)
         if order_desc:
             query = query.order_by(order_field.desc())
         else:
@@ -712,9 +712,9 @@ class UserService:
         
         # Get last password change
         password_history_result = await self.db.execute(
-            select(PasswordHistory.ph_created_at)
+            select(PasswordHistory.created_at)
             .where(PasswordHistory.ph_user_id == user_id)
-            .order_by(PasswordHistory.ph_created_at.desc())
+            .order_by(PasswordHistory.created_at.desc())
             .limit(1)
         )
         last_password_change = password_history_result.scalar()
@@ -725,6 +725,6 @@ class UserService:
             "total_logins": total_logins,
             "failed_logins": failed_logins,
             "last_password_change": last_password_change,
-            "account_age_days": (datetime.now(timezone.utc) - user.u_created_at).days if user.u_created_at else 0,
+            "account_age_days": (datetime.now(timezone.utc) - user.created_at).days if user.created_at else 0,
             "is_2fa_enabled": user.has_2fa_enabled
         }

@@ -32,7 +32,7 @@ class PasswordHistory(Base):
         ph_id: Password history ID (UUID)
         ph_user_id: User ID yang memiliki password
         ph_password_hash: Hash dari password lama
-        ph_created_at: When password was created/used
+        created_at: When password was created/used
     """
     
     __tablename__ = "password_history"
@@ -61,7 +61,7 @@ class PasswordHistory(Base):
     )
     
     # Timestamp
-    ph_created_at = Column(
+    created_at = Column(
         DateTime(timezone=True),
         server_default=text("CURRENT_TIMESTAMP"),
         nullable=False,
@@ -78,7 +78,7 @@ class PasswordHistory(Base):
     # Indexes
     __table_args__ = (
         Index('idx_password_history_user_id', 'ph_user_id'),
-        Index('idx_password_history_created_at', 'ph_created_at'),
+        Index('idx_password_history_created_at', 'created_at'),
     )
     
     # Methods
@@ -143,12 +143,12 @@ class PasswordHistory(Base):
         return {
             "ph_id": str(self.ph_id),
             "ph_user_id": str(self.ph_user_id),
-            "ph_created_at": self.ph_created_at.isoformat() if self.ph_created_at else None
+            "created_at": self.created_at.isoformat() if self.created_at else None
         }
     
     def __repr__(self) -> str:
         """String representation."""
         return (
             f"<PasswordHistory(id={self.ph_id}, user_id={self.ph_user_id}, "
-            f"created_at={self.ph_created_at})>"
+            f"created_at={self.created_at})>"
         )

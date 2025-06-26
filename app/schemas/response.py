@@ -221,7 +221,7 @@ class AuditLogResponse(BaseModel):
     al_new_values: Optional[Dict[str, Any]] = Field(None, description="New values")
     al_ip_address: Optional[str] = Field(None, description="IP address")
     al_user_agent: Optional[str] = Field(None, description="User agent")
-    al_created_at: datetime = Field(..., description="Timestamp")
+    created_at: datetime = Field(..., description="Timestamp")
     al_metadata: Optional[Dict[str, Any]] = Field(None, description="Additional metadata")
     
     # Computed fields
@@ -245,7 +245,7 @@ class AuditLogResponse(BaseModel):
                 "al_new_values": None,
                 "al_ip_address": "192.168.1.1",
                 "al_user_agent": "Mozilla/5.0...",
-                "al_created_at": "2024-01-15T10:00:00Z",
+                "created_at": "2024-01-15T10:00:00Z",
                 "al_metadata": {},
                 "user": {
                     "username": "johndoe",
@@ -267,7 +267,7 @@ class DeviceResponse(BaseModel):
     ud_browser: Optional[str] = Field(None, description="Browser")
     ud_is_trusted: bool = Field(..., description="Whether device is trusted")
     ud_last_used_at: Optional[datetime] = Field(None, description="Last used timestamp")
-    ud_created_at: datetime = Field(..., description="First seen timestamp")
+    created_at: datetime = Field(..., description="First seen timestamp")
     ud_is_active: bool = Field(..., description="Whether device is active")
     
     # Computed fields

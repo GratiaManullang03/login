@@ -191,14 +191,14 @@ class UserResponse(BaseModel):
     u_is_verified: bool = Field(..., description="Whether email is verified")
     u_is_locked: bool = Field(..., description="Whether account is locked")
     u_email_verified_at: Optional[datetime] = Field(None, description="Email verification timestamp")
-    u_created_at: datetime = Field(..., description="Account creation timestamp")
-    u_updated_at: Optional[datetime] = Field(None, description="Last update timestamp")
+    created_at: datetime = Field(..., description="Account creation timestamp")
+    updated_at: Optional[datetime] = Field(None, description="Last update timestamp")
     u_last_login_at: Optional[datetime] = Field(None, description="Last login timestamp")
     u_metadata: Optional[Dict[str, Any]] = Field(None, description="User metadata")
     has_2fa_enabled: bool = Field(False, description="Whether 2FA is enabled")
     
     class Config:
-        orm_mode = True
+        from_attributes  = True
         json_encoders = {
             datetime: lambda v: v.isoformat() if v else None,
             UUID: lambda v: str(v)
@@ -212,8 +212,8 @@ class UserResponse(BaseModel):
                 "u_is_verified": True,
                 "u_is_locked": False,
                 "u_email_verified_at": "2024-01-15T10:00:00Z",
-                "u_created_at": "2024-01-01T00:00:00Z",
-                "u_updated_at": "2024-01-15T10:00:00Z",
+                "created_at": "2024-01-01T00:00:00Z",
+                "updated_at": "2024-01-15T10:00:00Z",
                 "u_last_login_at": "2024-01-15T09:00:00Z",
                 "u_metadata": {
                     "first_name": "John",
@@ -426,7 +426,7 @@ class UserProfile(BaseModel):
     u_username: str
     u_is_active: bool
     u_is_verified: bool
-    u_created_at: datetime
+    created_at: datetime
     u_last_login_at: Optional[datetime]
     u_metadata: Optional[Dict[str, Any]]
     
@@ -441,7 +441,7 @@ class UserProfile(BaseModel):
     password_last_changed: Optional[datetime]
     
     class Config:
-        orm_mode = True
+        from_attributes  = True
         json_encoders = {
             datetime: lambda v: v.isoformat() if v else None,
             UUID: lambda v: str(v)
