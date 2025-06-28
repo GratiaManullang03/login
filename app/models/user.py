@@ -161,14 +161,14 @@ class User(BaseModel):
         "UserToken",
         back_populates="user",
         cascade="all, delete-orphan",
-        lazy="dynamic"
+        lazy="selectin"
     )
     
     audit_logs: Mapped[List["AuditLog"]] = relationship(
         "AuditLog",
         back_populates="user",
         cascade="all, delete-orphan",
-        lazy="dynamic"
+        lazy="selectin"
     )
     
     devices: Mapped[List["UserDevice"]] = relationship(
