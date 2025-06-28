@@ -10,6 +10,8 @@ from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, or_, func
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import selectinload
+from sqlalchemy import select
 
 from app.core.config import settings
 from app.core.security import security
@@ -149,51 +151,80 @@ class UserService:
                 raise ConflictError("Username already taken")
             raise
     
-    async def get_user_by_id(self, user_id: UUID) -> Optional[User]:
+    async def get_user_by_id(self, user_id: UUID, eager_load: bool = True) -> Optional[User]:
         """
-        Get user by ID.
+        Get user by ID with optional eager loading.
         
         Args:
             user_id: User ID
+            eager_load: Whether to eager load relationships
             
         Returns:
             User object atau None
         """
-        result = await self.db.execute(
-            select(User).where(User.u_id == user_id)
-        )
+        query = select(User).where(User.u_id == user_id)
+        
+        if eager_load:
+            # Eager load all relationships to prevent N+1 queries
+            query = query.options(
+                selectinload(User.sessions),
+                selectinload(User.tokens),
+                selectinload(User.audit_logs),
+                selectinload(User.devices),
+                selectinload(User.two_factor_auth),
+                selectinload(User.password_history),
+                selectinload(User.login_attempts)
+            )
+        
+        result = await self.db.execute(query)
         return result.scalar_one_or_none()
     
-    async def get_user_by_email(self, email: str) -> Optional[User]:
+    async def get_user_by_email(self, email: str, eager_load: bool = True) -> Optional[User]:
         """
-        Get user by email.
+        Get user by email with optional eager loading.
         
         Args:
             email: User email
+            eager_load: Whether to eager load relationships
             
         Returns:
             User object atau None
         """
         email = email.lower().strip()
-        result = await self.db.execute(
-            select(User).where(User.u_email == email)
-        )
+        query = select(User).where(User.u_email == email)
+        
+        if eager_load:
+            query = query.options(
+                selectinload(User.sessions),
+                selectinload(User.devices),
+                selectinload(User.two_factor_auth)
+            )
+        
+        result = await self.db.execute(query)
         return result.scalar_one_or_none()
     
-    async def get_user_by_username(self, username: str) -> Optional[User]:
+    async def get_user_by_username(self, username: str, eager_load: bool = True) -> Optional[User]:
         """
-        Get user by username.
+        Get user by username with optional eager loading.
         
         Args:
             username: Username
+            eager_load: Whether to eager load relationships
             
         Returns:
             User object atau None
         """
         username = username.strip()
-        result = await self.db.execute(
-            select(User).where(User.u_username == username)
-        )
+        query = select(User).where(User.u_username == username)
+        
+        if eager_load:
+            query = query.options(
+                selectinload(User.sessions),
+                selectinload(User.devices),
+                selectinload(User.two_factor_auth)
+            )
+        
+        result = await self.db.execute(query)
         return result.scalar_one_or_none()
     
     async def update_user(

@@ -161,14 +161,14 @@ class User(BaseModel):
         "UserToken",
         back_populates="user",
         cascade="all, delete-orphan",
-        lazy="selectin"
+        lazy="dynamic"
     )
     
     audit_logs: Mapped[List["AuditLog"]] = relationship(
         "AuditLog",
         back_populates="user",
         cascade="all, delete-orphan",
-        lazy="selectin"
+        lazy="dynamic"
     )
     
     devices: Mapped[List["UserDevice"]] = relationship(
@@ -183,7 +183,7 @@ class User(BaseModel):
         back_populates="user",
         cascade="all, delete-orphan",
         uselist=False,
-        lazy="selectin"
+        lazy="joined"
     )
     
     password_history: Mapped[List["PasswordHistory"]] = relationship(

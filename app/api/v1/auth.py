@@ -112,7 +112,7 @@ async def login(
             device_service = DeviceService(db)
             await device_service.track_device(
                 user_id=result["user"].u_id,
-                device_info=device_info.dict(),
+                device_info=device_info.model_dump(),
                 ip_address=client_ip,
                 user_agent=user_agent
             )

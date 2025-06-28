@@ -121,7 +121,7 @@ async def signup(
             metadata={"email": user.u_email, "username": user.u_username}
         )
         
-        return UserResponse.from_orm(user)
+        return UserResponse.model_validate(user)
         
     except (ConflictError, ValidationError, WeakPasswordException) as e:
         raise HTTPException(
@@ -156,7 +156,7 @@ async def get_current_user_profile(
     Returns:
         User profile data
     """
-    return UserResponse.from_orm(current_user)
+    return UserResponse.model_validate(current_user)
 
 
 @router.patch("/me", response_model=UserResponse)
@@ -194,7 +194,7 @@ async def update_current_user_profile(
         # Update user
         updated_user = await user_service.update_user(
             user_id=current_user.u_id,
-            update_data=user_update.dict(exclude_unset=True)
+            update_data=user_update.model_dump(exclude_unset=True)
         )
         
         # Log audit
@@ -206,10 +206,10 @@ async def update_current_user_profile(
             entity_type="USER",
             entity_id=current_user.u_id,
             old_values=old_values,
-            new_values=user_update.dict(exclude_unset=True)
+            new_values=user_update.model_dump(exclude_unset=True)
         )
         
-        return UserResponse.from_orm(updated_user)
+        return UserResponse.model_validate(updated_user)
         
     except (ValidationError, ConflictError) as e:
         raise HTTPException(
